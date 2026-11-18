@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, Loader2 } from 'lucide-react';
-import { supabase, isSupabaseConfigured, type BookStatus, COVER_COLORS } from '@/lib/supabase';
+import { addBook, type BookStatus, COVER_COLORS } from '@/lib/books';
 
 interface AddBookFormProps {
   onAdded: () => void;
@@ -32,24 +32,19 @@ export default function AddBookForm({ onAdded }: AddBookFormProps) {
     }
     setSubmitting(true);
     setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured.');
-      setSubmitting(false);
-      return;
-    }
-    const { error: insertError } = await supabase.from('books').insert({
+    const result = addBook({
       title: trimmed,
       author: author.trim() || null,
       status,
       cover_color: coverColor,
     });
     setSubmitting(false);
-    if (insertError) {
-      if (insertError.code === '23505') {
-        setError(`“${trimmed}” is already in your reading list.`);
-      } else {
-        setError('Could not add the book. Please try again.');
-      }
+    if (result.error === 'duplicate') {
+      setError(`“${trimmed}” is already in your reading list.`);
+      return;
+    }
+    if (result.error) {
+      setError('Could not add the book. Please try again.');
       return;
     }
     reset();

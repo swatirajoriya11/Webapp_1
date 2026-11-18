@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { MoreVertical, Star, Trash2, Pencil, Check, X, Loader2 } from 'lucide-react';
 import {
-  supabase,
-  isSupabaseConfigured,
+  updateBook,
+  deleteBook,
   type Book,
   type BookStatus,
   STATUS_META,
   STATUS_ORDER,
   COVER_COLOR_CLASSES,
-} from '@/lib/supabase';
+} from '@/lib/books';
 
 interface BookCardProps {
   book: Book;
@@ -29,17 +29,9 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     if (newStatus === book.status) return;
     setBusy(true);
     setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured.');
-      setBusy(false);
-      return;
-    }
-    const { error: updateError } = await supabase
-      .from('books')
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq('id', book.id);
+    const result = updateBook(book.id, { status: newStatus });
     setBusy(false);
-    if (updateError) {
+    if (result.error) {
       setError('Could not update status.');
       return;
     }
@@ -50,14 +42,9 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     setMenuOpen(false);
     setBusy(true);
     setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured.');
-      setBusy(false);
-      return;
-    }
-    const { error: deleteError } = await supabase.from('books').delete().eq('id', book.id);
+    const result = deleteBook(book.id);
     setBusy(false);
-    if (deleteError) {
+    if (result.error) {
       setError('Could not delete the book.');
       return;
     }
@@ -72,22 +59,13 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     }
     setBusy(true);
     setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured.');
-      setBusy(false);
-      return;
-    }
-    const { error: updateError } = await supabase
-      .from('books')
-      .update({
-        title: trimmed,
-        author: editAuthor.trim() || null,
-        rating: editRating,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', book.id);
+    const result = updateBook(book.id, {
+      title: trimmed,
+      author: editAuthor.trim() || null,
+      rating: editRating,
+    });
     setBusy(false);
-    if (updateError) {
+    if (result.error) {
       setError('Could not save changes.');
       return;
     }
@@ -100,17 +78,9 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     setEditRating(next);
     setBusy(true);
     setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured.');
-      setBusy(false);
-      return;
-    }
-    const { error: updateError } = await supabase
-      .from('books')
-      .update({ rating: next, updated_at: new Date().toISOString() })
-      .eq('id', book.id);
+    const result = updateBook(book.id, { rating: next });
     setBusy(false);
-    if (updateError) {
+    if (result.error) {
       setError('Could not save rating.');
       return;
     }

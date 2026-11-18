@@ -1,4 +1,4 @@
-import { STATUS_META, STATUS_ORDER, type BookStatus } from '@/lib/supabase';
+import { STATUS_META, STATUS_ORDER, type BookStatus } from '@/lib/books';
 
 interface FilterTabsProps {
   active: BookStatus | 'all';

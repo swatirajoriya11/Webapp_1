@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookMarked, Loader2, SearchX } from 'lucide-react';
-import {
-  supabase,
-  isSupabaseConfigured,
-  type Book,
-  type BookStatus,
-  STATUS_ORDER,
-} from '@/lib/supabase';
+import { BookMarked, Loader2 } from 'lucide-react';
+import { getBooks, type Book, type BookStatus } from '@/lib/books';
 import AddBookForm from '@/components/AddBookForm';
 import FilterTabs from '@/components/FilterTabs';
 import BookCard from '@/components/BookCard';
@@ -22,28 +16,26 @@ export default function App() {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
 
-  const loadBooks = useCallback(async () => {
-    setError(null);
-    if (!isSupabaseConfigured) {
-      setError('Database is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
-      setLoading(false);
-      return;
-    }
-    const { data, error: fetchError } = await supabase
-      .from('books')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (fetchError) {
+  const loadBooks = useCallback(() => {
+    try {
+      setBooks(getBooks());
+    } catch {
       setError('Could not load your books. Please try again.');
-      setLoading(false);
-      return;
     }
-    setBooks((data as Book[]) ?? []);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     loadBooks();
+  }, [loadBooks]);
+
+  // Keep list in sync if another tab changes localStorage.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'reading-list-books') loadBooks();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, [loadBooks]);
 
   const counts = useMemo(() => {
