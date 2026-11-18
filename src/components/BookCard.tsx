@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MoreVertical, Star, Trash2, Pencil, Check, X, Loader2 } from 'lucide-react';
 import {
   supabase,
+  isSupabaseConfigured,
   type Book,
   type BookStatus,
   STATUS_META,
@@ -28,6 +29,11 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     if (newStatus === book.status) return;
     setBusy(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured.');
+      setBusy(false);
+      return;
+    }
     const { error: updateError } = await supabase
       .from('books')
       .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -44,6 +50,11 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     setMenuOpen(false);
     setBusy(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured.');
+      setBusy(false);
+      return;
+    }
     const { error: deleteError } = await supabase.from('books').delete().eq('id', book.id);
     setBusy(false);
     if (deleteError) {
@@ -61,6 +72,11 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     }
     setBusy(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured.');
+      setBusy(false);
+      return;
+    }
     const { error: updateError } = await supabase
       .from('books')
       .update({
@@ -84,6 +100,11 @@ export default function BookCard({ book, onChanged }: BookCardProps) {
     setEditRating(next);
     setBusy(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured.');
+      setBusy(false);
+      return;
+    }
     const { error: updateError } = await supabase
       .from('books')
       .update({ rating: next, updated_at: new Date().toISOString() })

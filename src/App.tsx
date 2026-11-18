@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BookMarked, Loader2, SearchX } from 'lucide-react';
-import { supabase, type Book, type BookStatus, STATUS_ORDER } from '@/lib/supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  type Book,
+  type BookStatus,
+  STATUS_ORDER,
+} from '@/lib/supabase';
 import AddBookForm from '@/components/AddBookForm';
 import FilterTabs from '@/components/FilterTabs';
 import BookCard from '@/components/BookCard';
@@ -18,6 +24,11 @@ export default function App() {
 
   const loadBooks = useCallback(async () => {
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+      setLoading(false);
+      return;
+    }
     const { data, error: fetchError } = await supabase
       .from('books')
       .select('*')

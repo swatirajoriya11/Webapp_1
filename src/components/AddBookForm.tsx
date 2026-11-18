@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, Loader2 } from 'lucide-react';
-import { supabase, type BookStatus, COVER_COLORS } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, type BookStatus, COVER_COLORS } from '@/lib/supabase';
 
 interface AddBookFormProps {
   onAdded: () => void;
@@ -32,6 +32,11 @@ export default function AddBookForm({ onAdded }: AddBookFormProps) {
     }
     setSubmitting(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setError('Database is not configured.');
+      setSubmitting(false);
+      return;
+    }
     const { error: insertError } = await supabase.from('books').insert({
       title: trimmed,
       author: author.trim() || null,
